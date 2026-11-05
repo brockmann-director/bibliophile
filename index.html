@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bibliophile">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Bibliophile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#121110;--panel:#1b1a18;--panel2:#23211e;--line:#34312c;--ink:#f1ece2;--muted:#a39d91;--dim:#6f6a61;--accent:#e8b04a;--accent-ink:#1a1408;--red:#d9614c;--green:#7fb77e;--blue:#7aa6d6;--r:14px;--mono:"Geist Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Geist,system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,textarea{font:inherit;color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px calc(80px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+h1{font-weight:700;font-size:30px;letter-spacing:-.03em;margin:0;line-height:1}
+h1 span{color:var(--accent)}
+.hi{font-size:13px;color:var(--muted);margin-top:6px}
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;scrollbar-width:none}
+nav button{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap;color:var(--muted)}
+nav button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+nav .n{font-family:var(--mono);font-size:12px;margin-left:4px;opacity:.75}
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:10px 12px;color:var(--muted);font-size:13px;margin-bottom:14px}
+.note b{color:var(--ink)}
+.err{border-left-color:var(--red)}
+.sec{font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px}
+.sec:first-child{margin-top:4px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.ghost{background:transparent}
+.btn.big{padding:11px 16px;font-size:15px;border-radius:12px}
+.btn:disabled{opacity:.5;cursor:default}
+a.btn{color:var(--ink);text-decoration:none}
+a.btn.pri{color:var(--accent-ink)}
+.empty{color:var(--dim);text-align:center;padding:30px 10px;border:1px dashed var(--line);border-radius:var(--r)}
+.meta{font-size:13px;color:var(--muted)}
+.why{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cv{width:56px;aspect-ratio:2/3;border-radius:6px;object-fit:cover;background:var(--panel2);border:1px solid var(--line);display:block}
+.cv.ph{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:var(--accent);background:linear-gradient(160deg,#2a2620,#1b1a18)}
+.cv.lg{width:96px}
+/* Leseliste */
+.book{display:grid;grid-template-columns:22px 56px 1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.rank{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+.book h3,.hero h3{font-weight:600;font-size:16px;letter-spacing:-.01em;margin:0;line-height:1.25;cursor:pointer}
+.book .bi{min-width:0}
+.vote{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:7px 8px;cursor:pointer;color:var(--muted)}
+.vote b{font-family:var(--mono);font-size:17px;color:var(--ink);font-weight:500}
+.vote small{font-size:11px}
+.vote.on{border-color:var(--accent);color:var(--accent)}
+.vote.on b{color:var(--accent)}
+.voters{font-size:12px;color:var(--dim);margin-top:4px}
+.hero{display:grid;grid-template-columns:96px 1fr;gap:14px;background:var(--panel);border:1px solid var(--accent);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.hero .lbl{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.hero .row{margin-top:10px}
+.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* Gelesen */
+.read{display:grid;grid-template-columns:56px 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.read h3{font-weight:600;font-size:16px;margin:0;line-height:1.25;cursor:pointer}
+.stars{display:flex;gap:2px;margin-top:6px}
+.stars button{background:none;border:0;padding:2px;font-size:22px;line-height:1;cursor:pointer;color:var(--line)}
+.stars button.on{color:var(--accent)}
+.avg{font-family:var(--mono);color:var(--accent);font-size:13px}
+/* Treffen */
+.date{display:grid;grid-template-columns:74px 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.date.best{border-color:#5a4a26}
+.when{font-family:var(--mono);color:var(--accent);line-height:1.2}
+.when .d{font-size:13px;color:var(--muted)}
+.when .t{font-size:20px}
+.ans{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+.pill{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+.pill.yes{color:var(--green);border-color:#34502f;background:#1d2a1b}
+.pill.maybe{color:var(--accent);border-color:#5a4a26;background:#2b2415}
+.pill.no{color:var(--red);border-color:#5a2c24;background:#2b1a16}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;border-right:1px solid var(--line);padding:7px 11px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button.on.yes{background:var(--green);color:#10200f;font-weight:600}
+.seg button.on.maybe{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg button.on.no{background:var(--red);color:#2a0d08;font-weight:600}
+.tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:#3a2f17;color:var(--accent);margin-left:6px;vertical-align:2px}
+.fixed{background:var(--panel);border:1px solid var(--accent);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.fixed .lbl{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.fixed .big{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:4px 0 2px}
+.fixed .row{margin-top:10px}
+form.box{background:var(--panel);border:1px dashed var(--line);border-radius:var(--r);padding:14px;display:grid;gap:8px}
+input[type=text],input[type=search],input[type=datetime-local],textarea{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%;min-width:0}
+input[type=datetime-local]{color-scheme:dark;min-height:40px}
+textarea{min-height:110px;resize:vertical;line-height:1.45}
+label.f{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.06em}
+/* Sheet */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media (min-width:600px){.ov{align-items:center}}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:540px;width:100%;padding:18px;max-height:86vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.sheet h3{margin:0 0 4px;font-size:20px;letter-spacing:-.02em;line-height:1.2}
+.sheet p{margin:12px 0;white-space:pre-line}
+.sheet .x{float:right;background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:0 0 0 10px}
+.sheet .head{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:start}
+.sheet .row{margin-top:14px}
+.photo{display:flex;gap:12px;align-items:center;margin:6px 0 12px}
+.photo img{width:72px;aspect-ratio:2/3;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:1px dashed var(--accent);border-radius:var(--r);padding:20px;cursor:pointer;color:var(--accent);text-align:center;font-weight:600}
+.drop small{color:var(--muted);font-weight:400}
+.drop input{display:none}
+.hits{display:grid;gap:6px;margin-top:10px}
+.hit{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
+.hit .cv{width:44px}
+.hit b{font-weight:600;display:block;line-height:1.25}
+.busy{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:10px 0}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.covers{display:flex;gap:10px}
+.covers button{background:none;border:2px solid transparent;border-radius:9px;padding:2px;cursor:pointer}
+.covers button.on{border-color:var(--accent)}
+.covers .cv{width:64px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0;font-size:13px}
+@media (max-width:520px){h1{font-size:26px}.book{grid-template-columns:18px 48px 1fr auto;gap:10px;padding:10px 12px}.book .cv{width:48px}.rank{font-size:16px}.hero{grid-template-columns:80px 1fr}.hero .cv.lg{width:80px}.date{grid-template-columns:62px 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Biblio<span>phile</span></h1><div class="hi" id="hi">Die Leseratten</div></div>
+    <button class="btn pri big" id="addBtn" hidden>+ Buch</button>
+  </header>
+  <nav id="nav">
+    <button data-v="liste" class="on">Leseliste</button>
+    <button data-v="gelesen">Gelesen</button>
+    <button data-v="treffen">Treffen</button>
+  </nav>
+  <main id="main"></main>
+  <div id="modal"></div>
+</div>
+<script>
+// Supabase-Projekt (dasselbe wie Kinozettel). Der Publishable Key ist öffentlich, Zugriff nur über die bib_*-Funktionen.
+const SB_URL = 'https://xvhuljefiqvprabpapcb.supabase.co';
+const SB_KEY = 'sb_publishable_E7jP8kgVCX3kTVs9KICmcA_M9TXuCkh';
+const TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+// Optional: eigener Google-Books-API-Key, falls die Suche ohne Key oft "Quota exceeded" meldet.
+const GB_KEY = '';
+
+const S = { token:null, demo:false, d:null, view:'liste', err:'', loading:true, sheet:null, add:null, edit:false };
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD=['So','Mo','Di','Mi','Do','Fr','Sa'], WDL=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'], MO=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const pad = n => String(n).padStart(2,'0');
+const hm = d => pad(d.getHours())+':'+pad(d.getMinutes());
+const dDay = iso => { const d=new Date(iso); return d.getDate()+'. '+MO[d.getMonth()]; };
+const norm = t => String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+
+// ---------- Backend ----------
+async function rpc(fn, args){
+  if(S.demo) return Demo.call(fn, args);
+  const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body: JSON.stringify(args) });
+  if(!r.ok){ let m=''; try{ m=(await r.json()).message||''; }catch(_){} throw new Error(m || ('HTTP '+r.status)); }
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+async function reload(){ S.d = await rpc('bib_me', {p_token:S.token}); }
+async function act(fn, args, keepSheet){
+  try { await rpc(fn, Object.assign({p_token:S.token}, args)); await reload(); S.err=''; if(!keepSheet){ S.sheet=null; S.add=null; S.edit=false; } }
+  catch(e){ S.err = e.message; if(!keepSheet) { S.sheet=null; S.add=null; } }
+  render();
+}
+
+// Demo-Modus (?demo): alles bleibt nur in diesem Browser, zum Ausprobieren ohne Datenbank.
+const Demo = (() => {
+  const KEY = 'bib_demo_v1';
+  const uid = () => Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+  const inDays = (n, h, m) => { const d=new Date(); d.setDate(d.getDate()+n); d.setHours(h,m,0,0); return d.toISOString(); };
+  function seed(){
+    const M = [{id:'m1',name:'Jan'},{id:'m2',name:'Anna'},{id:'m3',name:'Marie'}];
+    const now = Date.now(), ago = n => new Date(now - n*864e5).toISOString();
+    return { members:M,
+      books:[
+        {id:'b1',title:'Die Wand',authors:'Marlen Haushofer',blurb:'Eine Frau verbringt ein Wochenende in einer Jagdhütte in den Bergen. Am Morgen ist sie allein, getrennt von der Welt durch eine unsichtbare Wand, hinter der alles Leben erstarrt ist.',cover:'',isbn:'',note:'Lag bei Felix Jud im Fenster',status:'reading',added_by:'m2',created_at:ago(20),read_at:null,votes:['m1','m2','m3'],ratings:{}},
+        {id:'b2',title:'Stoner',authors:'John Williams',blurb:'Das unscheinbare Leben eines Literaturprofessors im Mittleren Westen, erzählt mit großer Wärme.',cover:'',isbn:'',note:'',status:'list',added_by:'m1',created_at:ago(6),read_at:null,votes:['m1','m3'],ratings:{}},
+        {id:'b3',title:'Hund, Wolf, Schakal',authors:'Behzad Karim Khani',blurb:'',cover:'',isbn:'',note:'Buchhandlung Eppendorf',status:'list',added_by:'m3',created_at:ago(2),read_at:null,votes:['m3'],ratings:{}},
+        {id:'b4',title:'Der Mann, der zu viel wusste',authors:'',blurb:'',cover:'',isbn:'',note:'',status:'read',added_by:'m1',created_at:ago(60),read_at:ago(30),votes:[],ratings:{m2:4,m3:5}}
+      ],
+      dates:[
+        {id:'d1',starts_at:inDays(7,19,30),place:'bei Anna',note:'',fixed:false,created_by:'m2',answers:{m2:'yes',m3:'maybe'}},
+        {id:'d2',starts_at:inDays(9,19,0),place:'bei Anna',note:'',fixed:false,created_by:'m2',answers:{m2:'yes',m3:'yes'}}
+      ] };
+  }
+  let db; try{ db = JSON.parse(localStorage.getItem(KEY)); }catch(_){}
+  if(!db) db = seed();
+  const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(_){} };
+  const me = 'm1', book = id => db.books.find(b => b.id === id), date = id => db.dates.find(d => d.id === id);
+  const F = {
+    bib_me: () => ({ me:db.members[0], members:db.members, books:db.books.filter(b=>b.status!=='removed').slice().sort((a,b)=>b.created_at.localeCompare(a.created_at)),
+      dates:db.dates.filter(d => new Date(d.starts_at) > Date.now()-12*36e5).slice().sort((a,b)=>a.starts_at.localeCompare(b.starts_at)) }),
+    bib_add_book: a => {
+      if(db.books.some(b => b.status!=='removed' && ((a.p_isbn && b.isbn===a.p_isbn) || norm(b.title)===norm(a.p_title)))) throw new Error('Das Buch steht schon in der Liste');
+      if(String(a.p_cover||'').length > 400000) throw new Error('Foto ist zu groß');
+      db.books.push({id:uid(),title:a.p_title.trim(),authors:a.p_authors||'',blurb:a.p_blurb||'',cover:a.p_cover||'',isbn:a.p_isbn||'',note:a.p_note||'',status:'list',added_by:me,created_at:new Date().toISOString(),read_at:null,votes:[me],ratings:{}});
+    },
+    bib_update_book: a => { const b = book(a.p_book); if(a.p_blurb!=null) b.blurb=a.p_blurb; if(a.p_note!=null) b.note=a.p_note; },
+    bib_set_status: a => { if(a.p_status==='reading') db.books.forEach(b => { if(b.status==='reading') b.status='list'; }); const b = book(a.p_book); b.status=a.p_status; if(a.p_status==='read') b.read_at=b.read_at||new Date().toISOString(); if(a.p_status==='list') b.read_at=null; },
+    bib_vote: a => { const b = book(a.p_book); b.votes = b.votes.filter(x => x!==me); if(a.p_on) b.votes.push(me); },
+    bib_rate: a => { const b = book(a.p_book); if(a.p_stars) b.ratings[me]=a.p_stars; else delete b.ratings[me]; },
+    bib_add_date: a => { db.dates.push({id:uid(),starts_at:new Date(a.p_at).toISOString(),place:a.p_place||'',note:a.p_note||'',fixed:false,created_by:me,answers:{[me]:'yes'}}); },
+    bib_answer: a => { const d = date(a.p_date); if(a.p_answer) d.answers[me]=a.p_answer; else delete d.answers[me]; },
+    bib_fix_date: a => { if(a.p_on) db.dates.forEach(d => d.fixed=false); date(a.p_date).fixed=!!a.p_on; },
+    bib_delete_date: a => { db.dates = db.dates.filter(d => d.id!==a.p_date); }
+  };
+  return { call: async (fn, a) => { const r = F[fn](a); save(); return JSON.parse(JSON.stringify(r ?? null)); }, reset: () => { db = seed(); save(); } };
+})();
+
+// ---------- Daten-Helfer ----------
+const members = () => (S.d && S.d.members) || [];
+const meId = () => S.d && S.d.me && S.d.me.id;
+const nameOf = id => (members().find(m => m.id === id) || {}).name || '–';
+const books = () => (S.d && S.d.books) || [];
+const bookById = id => books().find(b => b.id === id);
+const reading = () => books().find(b => b.status === 'reading');
+const listBooks = () => books().filter(b => b.status === 'list').sort((a,b) => b.votes.length - a.votes.length || b.created_at.localeCompare(a.created_at));
+const readBooks = () => books().filter(b => b.status === 'read').sort((a,b) => String(b.read_at||'').localeCompare(String(a.read_at||'')));
+const dates = () => (S.d && S.d.dates) || [];
+const fixedDate = () => dates().find(d => d.fixed);
+const avgStars = b => { const v = Object.values(b.ratings||{}); return v.length ? v.reduce((a,c)=>a+c,0)/v.length : 0; };
+const initials = t => (String(t||'?').trim()[0] || '?').toUpperCase();
+const cover = (b, cls='') => b.cover ? `<img class="cv ${cls}" src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<div class="cv ph ${cls}">${esc(initials(b.title))}</div>`;
+const byline = b => [b.authors, b.added_by ? 'von ' + nameOf(b.added_by) + ' · ' + dDay(b.created_at) : ''].filter(Boolean).map(esc).join(' · ');
+
+// ---------- Ansichten ----------
+function render(){
+  $$('#nav button').forEach(b => {
+    b.classList.toggle('on', b.dataset.v === S.view);
+    const n = b.dataset.v === 'liste' ? listBooks().length : b.dataset.v === 'gelesen' ? readBooks().length : dates().length;
+    b.innerHTML = esc(b.textContent.replace(/\s*\d+$/,'')) + (S.d && n ? `<span class="n">${n}</span>` : '');
+  });
+  $('#hi').textContent = 'Die Leseratten' + (S.d ? ' · Hallo ' + S.d.me.name : '') + (S.demo ? ' · Demo' : '');
+  $('#addBtn').hidden = !S.d;
+  let h = '';
+  if(S.err) h += `<div class="note err">${esc(S.err)}</div>`;
+  if(!S.token) h += `<div class="note err"><b>Kein persönlicher Link.</b> Öffne Bibliophile über den Link, den du bekommen hast. Zum Ausprobieren: <a href="?demo" style="color:var(--accent)">Demo öffnen</a>.</div>`;
+  else if(S.loading) h += `<div class="empty">Lade …</div>`;
+  else if(!S.d) h += `<div class="note err"><b>Dieser Link funktioniert nicht.</b> Frag nach deinem persönlichen Link.</div>`;
+  else h += ({liste:vListe, gelesen:vGelesen, treffen:vTreffen})[S.view]();
+  $('#main').innerHTML = h;
+  $('#modal').innerHTML = S.sheet === 'add' ? vAdd() : S.sheet ? vBook() : '';
+  bind();
+}
+
+function vListe(){
+  let h = '';
+  const r = reading();
+  if(r){
+    h += `<div class="sec">Wir lesen gerade</div><div class="hero">${cover(r,'lg')}<div><h3 data-open="${esc(r.id)}">${esc(r.title)}</h3><div class="meta">${esc(r.authors)}</div>
+      ${r.blurb?`<div class="why clip" style="margin-top:6px">${esc(r.blurb)}</div>`:''}
+      <div class="row"><button class="btn pri" data-st="${esc(r.id)}|read">Fertig gelesen</button><button class="btn ghost" data-open="${esc(r.id)}">Details</button></div></div></div>`;
+  }
+  const L = listBooks();
+  h += `<div class="sec">Leseliste${L.length?' · nach Stimmen':''}</div>`;
+  if(!L.length) return h + `<div class="empty">Noch keine Vorschläge. Fotografier das nächste Buch, das dir im Schaufenster auffällt: oben auf „+ Buch“.</div>`;
+  const me = meId();
+  h += L.map((b,i) => { const on = b.votes.includes(me); return `<div class="book"><div class="rank">${i+1}</div>${cover(b)}
+    <div class="bi"><h3 data-open="${esc(b.id)}">${esc(b.title)}</h3><div class="meta">${byline(b)}</div>${b.note?`<div class="why">„${esc(b.note)}“</div>`:''}
+    ${b.votes.length?`<div class="voters">${b.votes.map(nameOf).map(esc).join(', ')}</div>`:''}</div>
+    <button class="vote ${on?'on':''}" data-vote="${esc(b.id)}|${on?0:1}" aria-label="${on?'Stimme zurücknehmen':'Dafür stimmen'}"><span>▲</span><b>${b.votes.length}</b><small>${on?'dafür':'Stimme'}</small></button></div>`; }).join('');
+  return h;
+}
+
+function vGelesen(){
+  const R = readBooks(), me = meId();
+  if(!R.length) return `<div class="empty">Noch nichts gelesen. Wenn ihr ein Buch durch habt, hakt es unter „Wir lesen gerade“ ab.</div>`;
+  return R.map(b => { const mine = (b.ratings||{})[me] || 0, avg = avgStars(b);
+    const others = Object.entries(b.ratings||{}).filter(([k]) => k !== me).map(([k,v]) => esc(nameOf(k)) + ' ' + '★'.repeat(v)).join(' · ');
+    return `<div class="read">${cover(b)}<div><h3 data-open="${esc(b.id)}">${esc(b.title)}</h3>
+      <div class="meta">${[b.authors, b.read_at ? 'gelesen ' + MO[new Date(b.read_at).getMonth()] + ' ' + new Date(b.read_at).getFullYear() : ''].filter(Boolean).map(esc).join(' · ')}${avg?` · <span class="avg">Ø ${avg.toFixed(1).replace('.',',')} ★</span>`:''}</div>
+      <div class="stars" aria-label="Deine Bewertung">${[1,2,3,4,5].map(n => `<button class="${n<=mine?'on':''}" data-rate="${esc(b.id)}|${n===mine?0:n}" aria-label="${n} Sterne">★</button>`).join('')}</div>
+      ${others?`<div class="voters">${others}</div>`:''}</div></div>`; }).join('');
+}
+
+function score(d){ return Object.values(d.answers||{}).reduce((a,v) => a + (v==='yes'?2:v==='maybe'?1:0), 0); }
+function answerPills(d){
+  return members().map(m => { const a = (d.answers||{})[m.id]; const s = a==='yes'?'✓':a==='maybe'?'?':a==='no'?'✗':'–'; return `<span class="pill ${a||''}">${esc(m.name)} ${s}</span>`; }).join('');
+}
+function whenLong(iso){ const d = new Date(iso); return WDL[d.getDay()] + ', ' + d.getDate() + '. ' + MO[d.getMonth()] + ' · ' + hm(d) + ' Uhr'; }
+function ics(d){
+  const z = t => new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const r = reading(), x = s => String(s||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n');
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Bibliophile//DE','BEGIN:VEVENT','UID:'+d.id+'@bibliophile','DTSTAMP:'+z(Date.now()),'DTSTART:'+z(d.starts_at),'DTEND:'+z(new Date(d.starts_at).getTime()+2*36e5),
+    'SUMMARY:Leseratten Buchclub','LOCATION:'+x(d.place),'DESCRIPTION:'+x(r?'Buch: '+r.title+(r.authors?' von '+r.authors:''):''),'END:VEVENT','END:VCALENDAR'];
+  return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines.join('\r\n'));
+}
+function waText(d){ const r = reading(); return 'Leseratten-Treffen steht: ' + whenLong(d.starts_at) + (d.place?', '+d.place:'') + (r?'. Wir lesen „'+r.title+'“.':''); }
+
+function vTreffen(){
+  let h = '';
+  const f = fixedDate(), me = meId();
+  if(f){
+    const r = reading();
+    h += `<div class="fixed"><div class="lbl">Nächstes Treffen steht</div><div class="big">${esc(whenLong(f.starts_at))}</div>
+      <div class="meta">${[f.place, r ? 'Buch: ' + r.title : ''].filter(Boolean).map(esc).join(' · ')}</div>
+      <div class="ans">${answerPills(f)}</div>
+      <div class="row"><a class="btn pri" href="${ics(f)}" download="leseratten.ics">In den Kalender</a><a class="btn" href="https://wa.me/?text=${encodeURIComponent(waText(f))}" target="_blank" rel="noopener">In WhatsApp teilen</a><button class="btn ghost" data-fix="${esc(f.id)}|0">Doch nicht fest</button></div></div>`;
+  }
+  const open = dates().filter(d => !d.fixed);
+  h += `<div class="sec">${f ? 'Weitere Vorschläge' : 'Terminvorschläge'}</div>`;
+  if(!open.length) h += `<div class="empty">Noch keine Vorschläge. Trag unten ein, wann es dir passt. Gern mehrere Termine.</div>`;
+  else {
+    const best = Math.max(...open.map(score));
+    h += open.map(d => { const a = (d.answers||{})[me] || '', dt = new Date(d.starts_at), top = best > 0 && score(d) === best;
+      return `<div class="date ${top?'best':''}"><div class="when"><div class="d">${WD[dt.getDay()]} ${dt.getDate()}.${dt.getMonth()+1}.</div><div class="t">${hm(dt)}</div></div><div>
+        <div>${esc(d.place || 'Ort offen')}${top?'<span class="tag">Favorit</span>':''}</div>${d.note?`<div class="why">${esc(d.note)}</div>`:''}
+        <div class="ans">${answerPills(d)}</div>
+        <div class="row"><div class="seg">${[['yes','Passt'],['maybe','Vielleicht'],['no','Geht nicht']].map(([k,l]) => `<button class="${k} ${a===k?'on':''}" data-ans="${esc(d.id)}|${a===k?'':k}">${l}</button>`).join('')}</div>
+        <button class="btn ghost" data-fix="${esc(d.id)}|1">Festlegen</button>${d.created_by===me?`<button class="btn ghost" data-del="${esc(d.id)}" aria-label="Vorschlag löschen">Löschen</button>`:''}</div></div></div>`; }).join('');
+  }
+  const def = new Date(); def.setDate(def.getDate()+7); def.setHours(19,30,0,0);
+  const local = def.getFullYear()+'-'+pad(def.getMonth()+1)+'-'+pad(def.getDate())+'T19:30';
+  const lastPlace = (dates().slice(-1)[0] || {}).place || '';
+  h += `<div class="sec">Termin vorschlagen</div><form class="box" id="dateForm"><input type="datetime-local" id="dAt" value="${local}" required>
+    <input type="text" id="dPlace" placeholder="Wo? z. B. bei Anna" value="${esc(lastPlace)}" autocomplete="off">
+    <div class="row"><button class="btn pri" type="submit">Vorschlagen</button><span class="meta">Du kannst mehrere Termine nacheinander eintragen.</span></div></form>`;
+  return h;
+}
+
+function vBook(){
+  const b = bookById(S.sheet); if(!b) return '';
+  const on = b.votes.includes(meId());
+  let h = `<div class="ov" id="ov"><div class="sheet" role="dialog" aria-label="${esc(b.title)}"><button class="x" data-close aria-label="Schließen">×</button>
+    <div class="head">${cover(b,'lg')}<div><h3>${esc(b.title)}</h3><div class="meta">${esc(b.authors)}</div>
+    <div class="meta" style="margin-top:6px">Vorgeschlagen von ${esc(nameOf(b.added_by))} am ${esc(dDay(b.created_at))}${b.isbn?' · ISBN '+esc(b.isbn):''}</div></div></div>`;
+  if(S.edit){
+    h += `<label class="f">Klappentext</label><textarea id="eBlurb">${esc(b.blurb)}</textarea><label class="f">Notiz</label><input type="text" id="eNote" value="${esc(b.note)}">
+      <div class="row"><button class="btn pri" id="eSave">Speichern</button><button class="btn ghost" id="eCancel">Abbrechen</button></div>`;
+  } else {
+    h += b.blurb ? `<p>${esc(b.blurb)}</p>` : `<p class="meta">Noch kein Klappentext. Über „Bearbeiten“ kannst du einen eintragen.</p>`;
+    if(b.note) h += `<p class="why">„${esc(b.note)}“</p>`;
+    const st = b.status;
+    h += `<div class="row">
+      ${st==='list'?`<button class="btn ${on?'':'pri'}" data-vote="${esc(b.id)}|${on?0:1}">${on?'Stimme zurücknehmen':'▲ Dafür stimmen'}</button><button class="btn" data-st="${esc(b.id)}|reading">Lesen wir als Nächstes</button>`:''}
+      ${st==='reading'?`<button class="btn pri" data-st="${esc(b.id)}|read">Fertig gelesen</button><button class="btn" data-st="${esc(b.id)}|list">Zurück auf die Liste</button>`:''}
+      ${st==='read'?`<button class="btn" data-st="${esc(b.id)}|list">Doch nicht gelesen</button>`:''}
+      ${st==='list'?`<button class="btn" data-st="${esc(b.id)}|read">Schon gelesen</button>`:''}
+      <button class="btn ghost" id="eOpen">Bearbeiten</button>
+      <a class="btn ghost" href="https://www.google.com/search?q=${encodeURIComponent(b.title+' '+b.authors+' Buch')}" target="_blank" rel="noopener">Mehr im Web</a>
+      <button class="btn ghost" data-remove="${esc(b.id)}">Entfernen</button></div>`;
+  }
+  return h + `</div></div>`;
+}
+
+// ---------- Buch erfassen ----------
+function vAdd(){
+  const A = S.add;
+  let h = `<div class="ov" id="ov"><div class="sheet" role="dialog" aria-label="Buch hinzufügen"><button class="x" data-close aria-label="Schließen">×</button><h3>Buch hinzufügen</h3>`;
+  if(!A.draft){
+    if(A.photo) h += `<div class="photo"><img src="${A.photo}" alt="Dein Foto"><label class="btn ghost">Anderes Foto<input type="file" accept="image/*" id="aFile" hidden></label></div>`;
+    else h += `<label class="drop" style="margin-top:12px">📷 Foto machen oder auswählen<small>Am besten das Cover gerade von vorn. Ich lese den Titel und suche das Buch.</small><input type="file" accept="image/*" id="aFile"></label>`;
+    if(A.busy) h += `<div class="busy"><div class="spin"></div>${esc(A.busy)}</div>`;
+    if(A.msg) h += `<div class="note" style="margin:10px 0 0">${esc(A.msg)}</div>`;
+    h += `<form id="aSearch" style="margin-top:12px"><label class="f" style="margin-top:0">${A.photo?'Gelesen bzw. gesucht':'Oder Titel, Autor oder ISBN eintippen'}</label>
+      <div class="row" style="flex-wrap:nowrap"><input type="search" id="aQ" value="${esc(A.query)}" placeholder="z. B. Die Wand Haushofer" autocomplete="off" enterkeyhint="search"><button class="btn pri" type="submit">Suchen</button></div></form>`;
+    if(A.results && A.results.length){
+      h += `<div class="hits">${A.results.map((r,i) => `<button class="hit" data-pick="${i}">${cover(r)}<span><b>${esc(r.title)}</b><span class="meta">${esc([r.authors, r.year].filter(Boolean).join(' · '))}</span></span></button>`).join('')}</div>`;
+    } else if(A.results) h += `<div class="meta" style="margin-top:10px">Nichts gefunden. Versuch es mit weniger Wörtern oder dem Namen der Autorin.</div>`;
+    h += `<div style="margin-top:14px"><button class="link" id="aManual">Ohne Suche selbst eintragen</button></div>`;
+  } else {
+    const D = A.draft, opts = [D.gCover && 'g', A.photo && 'p'].filter(Boolean);
+    if(opts.length > 1) h += `<label class="f">Cover</label><div class="covers"><button class="${D.useCover==='g'?'on':''}" data-cv="g"><img class="cv" src="${esc(D.gCover)}" alt="Cover aus der Suche" referrerpolicy="no-referrer"></button><button class="${D.useCover==='p'?'on':''}" data-cv="p"><img class="cv" src="${A.photo}" alt="Dein Foto"></button></div>`;
+    else if(opts.length) h += `<div class="photo">${cover({cover: opts[0]==='g' ? D.gCover : A.photo, title:D.title})}</div>`;
+    h += `<label class="f">Titel</label><input type="text" id="dT" value="${esc(D.title)}" autocomplete="off">
+      <label class="f">Autor*in</label><input type="text" id="dA" value="${esc(D.authors)}" autocomplete="off">
+      <label class="f">Klappentext</label><textarea id="dB" placeholder="${A.busy?'Lade Klappentext …':'Kurz, worum es geht'}">${esc(D.blurb)}</textarea>
+      <label class="f">Notiz</label><input type="text" id="dN" placeholder="Wo gesehen? Warum spannend?" value="${esc(D.note)}" autocomplete="off">
+      <div class="row"><button class="btn pri big" id="dSave">Auf die Leseliste</button><button class="btn ghost" id="dBack">Zurück</button></div>`;
+  }
+  return h + `</div></div>`;
+}
+
+function loadImage(file){
+  return new Promise((ok, bad) => { const u = URL.createObjectURL(file), i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('Das Foto ließ sich nicht öffnen.')); i.src = u; });
+}
+function toCanvas(img, max, gray){
+  const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s);
+  const g = c.getContext('2d'); if(gray) g.filter = 'grayscale(1) contrast(1.3)'; g.drawImage(img, 0, 0, c.width, c.height); return c;
+}
+let tessP = null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  return tessP = tessP || new Promise((ok, bad) => { const s = document.createElement('script'); s.src = TESS; s.onload = () => ok(window.Tesseract); s.onerror = () => { tessP = null; bad(new Error('Texterkennung konnte nicht geladen werden.')); }; document.head.appendChild(s); });
+}
+const COVER_WORDS = new Set(['roman','romane','erzahlung','erzahlungen','novelle','thriller','krimi','kriminalroman','bestseller','spiegel','spiegelbestseller','der','die','das','nr','band','taschenbuch','neu','novel','the','a','sunday','times','new','york','international','autorin','autor','vom','von','des','buch','jahres','preis','ausgezeichnet','mit','dem','sachbuch','gedichte']);
+function cleanLine(s){
+  return String(s||'').replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿß'’ ]+/g,' ').split(/\s+/).filter(w => w.length >= 2 && /[A-Za-zÀ-ÿß]{2}/.test(w)).join(' ');
+}
+const usefulLine = t => t.split(' ').some(w => w.length >= 3 && !COVER_WORDS.has(norm(w)));
+function queryFromOcr(data){
+  const flat = String(data.text||'').replace(/[\s\-–]/g,'');
+  const isbn = (flat.match(/97[89]\d{10}/) || [])[0];
+  if(isbn) return 'isbn:' + isbn;
+  const lines = (data.lines||[]).map(l => ({ t:cleanLine(l.text), h:(l.bbox.y1-l.bbox.y0), c:l.confidence })).filter(l => l.t.length >= 3 && l.c >= 50 && usefulLine(l.t));
+  lines.sort((a,b) => b.h - a.h);
+  return lines.slice(0,3).map(l => l.t).join(' ').split(' ').slice(0,8).join(' ');
+}
+async function onPhoto(file){
+  const A = S.add; A.results = null; A.msg = ''; A.busy = 'Foto wird vorbereitet …'; render();
+  try {
+    const img = await loadImage(file);
+    A.photo = toCanvas(img, 360).toDataURL('image/jpeg', 0.72);
+    A.busy = 'Lese das Cover …'; render();
+    const T = await loadTesseract();
+    const res = await T.recognize(toCanvas(img, 1600, true), 'deu', { logger: m => { if(m.status === 'recognizing text'){ const b = $('.busy'); if(b) b.lastChild.textContent = 'Lese das Cover … ' + Math.round(m.progress*100) + ' %'; } } });
+    const q = queryFromOcr(res.data);
+    if(!q){ A.busy = ''; A.msg = 'Auf dem Foto konnte ich keinen Titel lesen. Tipp ein, zwei Wörter vom Cover ein.'; render(); const i = $('#aQ'); if(i) i.focus(); return; }
+    A.query = q; await doSearch();
+  } catch(e){ A.busy = ''; A.msg = e.message + ' Tipp den Titel einfach ein.'; render(); }
+}
+
+const stripHtml = s => { const d = document.createElement('div'); d.innerHTML = String(s||'').replace(/<br\s*\/?>|<\/p>/gi,'\n'); return (d.textContent||'').replace(/\n{3,}/g,'\n\n').trim(); };
+function shortBlurb(s){
+  s = stripHtml(s); if(s.length <= 700) return s;
+  const cut = s.slice(0, 700), i = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  return (i > 300 ? cut.slice(0, i+1) : cut.trim() + ' …');
+}
+async function googleBooks(q){
+  const r = await fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=12&printType=books' + (GB_KEY ? '&key=' + GB_KEY : ''));
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const out = (j.items||[]).map(it => { const v = it.volumeInfo || {}, ids = v.industryIdentifiers || [];
+    const isbn = ((ids.find(x => x.type==='ISBN_13') || ids.find(x => x.type==='ISBN_10') || {}).identifier) || '';
+    const img = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
+    return { gid:it.id, title:v.title || '', authors:(v.authors||[]).join(', '), year:String(v.publishedDate||'').slice(0,4), blurb:v.description || '', lang:v.language || '',
+      cover: img ? img.replace(/^http:/,'https:').replace('&edge=curl','') : '', isbn };
+  }).filter(x => x.title);
+  return out.map((x,i) => [x,i]).sort((a,b) => ((b[0].lang==='de')-(a[0].lang==='de')) || ((!!b[0].cover)-(!!a[0].cover)) || (a[1]-b[1])).map(p => p[0]).slice(0,8);
+}
+async function openLibrary(q){
+  const r = await fetch('https://openlibrary.org/search.json?limit=8&fields=key,title,author_name,first_publish_year,cover_i,isbn&q=' + encodeURIComponent(q.replace(/^isbn:/,'')));
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  return (j.docs||[]).map(d => ({ olKey:d.key||'', title:d.title||'', authors:(d.author_name||[]).slice(0,2).join(', '), year:String(d.first_publish_year||''), blurb:'', cover:d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`:'', isbn:(d.isbn||[]).find(x=>x.length===13)||'' }));
+}
+async function doSearch(){
+  const A = S.add; if(!A.query.trim()){ A.busy=''; render(); return; }
+  A.busy = 'Suche „' + A.query + '“ …'; A.msg = ''; render();
+  try { A.results = await googleBooks(A.query); }
+  catch(_){ try { A.results = await openLibrary(A.query); } catch(e){ A.results = null; A.msg = 'Die Buchsuche ist gerade nicht erreichbar. Trag das Buch selbst ein.'; } }
+  A.busy = ''; render();
+}
+async function pick(r){
+  const A = S.add;
+  A.draft = { title:r.title, authors:r.authors, blurb:shortBlurb(r.blurb), note:'', isbn:r.isbn, gCover:r.cover, useCover: r.cover ? 'g' : 'p' };
+  if(A.draft.blurb){ render(); return; }
+  // Kein Klappentext: andere Ausgaben desselben Titels oder die Detailseite probieren.
+  const twin = (A.results||[]).find(x => x !== r && x.blurb && norm(x.title) === norm(r.title));
+  if(twin){ A.draft.blurb = shortBlurb(twin.blurb); render(); return; }
+  if(!r.gid && !r.olKey){ render(); return; }
+  A.busy = 'Lade Klappentext …'; render();
+  try {
+    let t = '';
+    if(r.gid){ const j = await (await fetch('https://www.googleapis.com/books/v1/volumes/' + r.gid + (GB_KEY ? '?key=' + GB_KEY : ''))).json(); t = shortBlurb((j.volumeInfo||{}).description); }
+    else { const j = await (await fetch('https://openlibrary.org' + r.olKey + '.json')).json(); const d = j.description; t = shortBlurb(typeof d === 'string' ? d : (d && d.value) || ''); }
+    if(A.draft){ readDraft(); if(t && !A.draft.blurb.trim()) A.draft.blurb = t; } } catch(_){}
+  if(A.draft){ A.busy = ''; render(); }
+}
+function readDraft(){ const D = S.add && S.add.draft; if(!D || !$('#dT')) return; D.title = $('#dT').value; D.authors = $('#dA').value; D.blurb = $('#dB').value; D.note = $('#dN').value; }
+
+// ---------- Events ----------
+function closeSheet(){ S.sheet = null; S.add = null; S.edit = false; render(); }
+function bind(){
+  $$('[data-open]').forEach(el => el.onclick = () => { S.sheet = el.dataset.open; S.edit = false; render(); });
+  $$('[data-close]').forEach(el => el.onclick = closeSheet);
+  const ov = $('#ov'); if(ov) ov.onclick = e => { if(e.target === ov && !(S.add && S.add.draft)) closeSheet(); };
+  $$('[data-vote]').forEach(b => b.onclick = () => { const [id, on] = b.dataset.vote.split('|'); b.disabled = true; act('bib_vote', {p_book:id, p_on:on==='1'}, true); });
+  $$('[data-st]').forEach(b => b.onclick = () => { const [id, st] = b.dataset.st.split('|'); b.disabled = true; if(st==='read') S.view = 'gelesen'; act('bib_set_status', {p_book:id, p_status:st}); });
+  $$('[data-remove]').forEach(b => b.onclick = () => { if(confirm('Buch aus der Liste entfernen?')) act('bib_set_status', {p_book:b.dataset.remove, p_status:'removed'}); });
+  $$('[data-rate]').forEach(b => b.onclick = () => { const [id, n] = b.dataset.rate.split('|'); act('bib_rate', {p_book:id, p_stars:+n}, true); });
+  $$('[data-ans]').forEach(b => b.onclick = () => { const [id, a] = b.dataset.ans.split('|'); b.disabled = true; act('bib_answer', {p_date:id, p_answer:a}, true); });
+  $$('[data-fix]').forEach(b => b.onclick = () => { const [id, on] = b.dataset.fix.split('|'); b.disabled = true; act('bib_fix_date', {p_date:id, p_on:on==='1'}, true); });
+  $$('[data-del]').forEach(b => b.onclick = () => { if(confirm('Terminvorschlag löschen?')) act('bib_delete_date', {p_date:b.dataset.del}, true); });
+  const df = $('#dateForm'); if(df) df.onsubmit = e => { e.preventDefault(); const v = $('#dAt').value; if(!v) return; const at = new Date(v);
+    if(isNaN(at)) return; df.querySelector('button').disabled = true; act('bib_add_date', {p_at:at.toISOString(), p_place:$('#dPlace').value.trim(), p_note:''}, true); };
+  // Buch-Details bearbeiten
+  const eo = $('#eOpen'); if(eo) eo.onclick = () => { S.edit = true; render(); };
+  const ec = $('#eCancel'); if(ec) ec.onclick = () => { S.edit = false; render(); };
+  const es = $('#eSave'); if(es) es.onclick = () => { es.disabled = true; S.edit = false; act('bib_update_book', {p_book:S.sheet, p_blurb:$('#eBlurb').value.trim(), p_note:$('#eNote').value.trim()}, true); };
+  // Erfassen
+  const af = $('#aFile'); if(af) af.onchange = () => { const f = af.files && af.files[0]; if(f) onPhoto(f); };
+  const as = $('#aSearch'); if(as) as.onsubmit = e => { e.preventDefault(); S.add.query = $('#aQ').value.trim(); doSearch(); };
+  const aq = $('#aQ'); if(aq) aq.oninput = () => { S.add.query = aq.value; };
+  $$('[data-pick]').forEach(b => b.onclick = () => pick(S.add.results[+b.dataset.pick]));
+  const am = $('#aManual'); if(am) am.onclick = () => { const q = S.add.query && !/^isbn:/.test(S.add.query) ? S.add.query : ''; S.add.draft = { title:q, authors:'', blurb:'', note:'', isbn:'', gCover:'', useCover:'p' }; render(); };
+  $$('[data-cv]').forEach(b => b.onclick = () => { readDraft(); S.add.draft.useCover = b.dataset.cv; render(); });
+  const db = $('#dBack'); if(db) db.onclick = () => { S.add.draft = null; render(); };
+  const ds = $('#dSave'); if(ds) ds.onclick = () => {
+    readDraft(); const D = S.add.draft; if(!D.title.trim()){ $('#dT').focus(); return; }
+    const cv = D.useCover === 'g' && D.gCover ? D.gCover : (S.add.photo || D.gCover || '');
+    ds.disabled = true; S.view = 'liste';
+    act('bib_add_book', {p_title:D.title.trim(), p_authors:D.authors.trim(), p_blurb:D.blurb.trim(), p_cover:cv, p_isbn:D.isbn||'', p_note:D.note.trim()});
+  };
+}
+$('#addBtn').onclick = () => { S.sheet = 'add'; S.add = { photo:null, query:'', results:null, busy:'', msg:'', draft:null }; render(); };
+$('#nav').onclick = e => { const b = e.target.closest('button'); if(!b) return; S.view = b.dataset.v; try{ localStorage.setItem('bib_view', S.view); }catch(_){} render(); };
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && S.sheet && !(S.add && S.add.draft)) closeSheet(); });
+// Beim Zurückkehren in die App frische Daten holen (außer während man etwas eintippt).
+document.addEventListener('visibilitychange', async () => { if(document.visibilityState === 'visible' && S.d && !S.sheet){ try{ await reload(); render(); }catch(_){} } });
+
+(async () => {
+  const qs = new URLSearchParams(location.search);
+  S.demo = qs.has('demo');
+  if(S.demo){ S.token = 'demo'; if(qs.get('demo') === 'reset') Demo.reset(); }
+  else {
+    S.token = qs.get('k') || (() => { try{ return localStorage.getItem('bib_token'); }catch(_){ return null; } })();
+    if(qs.get('k')){ try{ localStorage.setItem('bib_token', qs.get('k')); }catch(_){} }
+  }
+  try{ const v = localStorage.getItem('bib_view'); if(['liste','gelesen','treffen'].includes(v)) S.view = v; }catch(_){}
+  render();
+  if(S.token){ try{ await reload(); } catch(e){ S.err = /Ungültiger Link/.test(e.message) ? '' : 'Verbindung zur Datenbank fehlgeschlagen: ' + e.message; S.d = null; } }
+  S.loading = false;
+  render();
+})();
+</script>
+</body>
+</html>
