@@ -57,17 +57,19 @@ Vorgehen:
 4. Gib das Ergebnis mit report_books zurück, das wichtigste oder auffälligste Buch zuerst, höchstens fünf.
 Erfinde nichts: Was du nicht sicher weißt, bleibt leer. Wenn kein Buch erkennbar ist, gib eine leere Liste zurück.`;
 
-async function validToken(token: string): Promise<boolean> {
+// Prüft den persönlichen Link genauso wie die App: über die öffentliche Funktion bib_me.
+async function validToken(token: string, apiKey: string): Promise<boolean> {
   if (!token || !/^[a-zA-Z0-9]+$/.test(token)) return false;
   const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const key = apiKey || Deno.env.get("SUPABASE_ANON_KEY") || "";
   if (!url || !key) return false;
-  const r = await fetch(`${url}/rest/v1/bib_members?select=id&token=eq.${token}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  const r = await fetch(`${url}/rest/v1/rpc/bib_me`, {
+    method: "POST",
+    headers: { apikey: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_token: token }),
   });
-  if (!r.ok) return false;
-  const rows = await r.json();
-  return Array.isArray(rows) && rows.length > 0;
+  await r.body?.cancel();
+  return r.ok;
 }
 
 type Book = { title: string; authors: string; isbn: string; year: string; blurb: string };
@@ -111,7 +113,7 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: "Ungültige Anfrage" }, 400); }
   const { token = "", image = "", mediaType = "image/jpeg", query = "" } = body;
 
-  if (!(await validToken(token))) return json({ error: "Ungültiger Link" }, 401);
+  if (!(await validToken(token, req.headers.get("apikey") || ""))) return json({ error: "Ungültiger Link" }, 401);
 
   let content: unknown[];
   if (image) {
