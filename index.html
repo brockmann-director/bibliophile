@@ -449,6 +449,8 @@ async function onPhoto(file){
       if(!e.noai){ A.busy = ''; A.msg = e.message + '. Du kannst den Titel unten eintippen.'; render(); return; }
     }
     if(!S.demo) A.note = 'Die KI-Erkennung ist nicht erreichbar, ich nutze die einfache Texterkennung.';
+  } else if(S.demo){
+    A.note = 'In der Demo gibt es keine KI-Erkennung, nur die einfache Texterkennung. Mit deinem persönlichen Link erkennt die KI die Bücher.';
   }
   await ocrPhoto(img);
 }
