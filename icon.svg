@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#121110"/>
-  <g transform="translate(256 270)">
-    <path d="M-170 -110 C-110 -138 -40 -134 0 -98 L0 132 C-40 100 -110 96 -170 120 Z" fill="#f1ece2"/>
-    <path d="M170 -110 C110 -138 40 -134 0 -98 L0 132 C40 100 110 96 170 120 Z" fill="#e3dccd"/>
-    <path d="M-130 -58 C-90 -72 -50 -70 -26 -54 M-130 -14 C-90 -28 -50 -26 -26 -10 M-130 30 C-90 16 -50 18 -26 34" stroke="#a39d91" stroke-width="10" stroke-linecap="round" fill="none"/>
-    <path d="M60 -128 L60 -20 L88 -44 L116 -20 L116 -134" fill="#e8b04a"/>
+  <rect width="512" height="512" rx="112" fill="#8a2b34"/>
+  <g transform="translate(256 262)">
+    <path d="M-168 -112 C-108 -140 -40 -136 0 -100 L0 132 C-40 100 -108 96 -168 122 Z" fill="#fbf6ee"/>
+    <path d="M168 -112 C108 -140 40 -136 0 -100 L0 132 C40 100 108 96 168 122 Z" fill="#efe5d6"/>
+    <path d="M-128 -60 C-90 -74 -50 -72 -26 -56 M-128 -16 C-90 -30 -50 -28 -26 -12 M-128 28 C-90 14 -50 16 -26 32" stroke="#c9b9a3" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M58 -130 L58 -16 L86 -40 L114 -16 L114 -136 Z" fill="#b4832a"/>
   </g>
 </svg>

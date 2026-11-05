@@ -211,9 +211,10 @@ grant execute on function
 to anon;
 
 -- ---------- Mitglieder ----------
--- Namen hier anpassen. Neue Namen kommen dazu, bestehende bleiben (mit ihrem Link).
+-- Namen hier anpassen. Wird nur beim allerersten Ausführen eingetragen (wenn es noch keine Mitglieder gibt).
 insert into bib_members (name)
 select n from unnest(array['Jan', 'Nachbarin 1', 'Nachbarin 2']) as n
+where not exists (select 1 from bib_members)
 on conflict (name) do nothing;
 
 -- Die persönlichen Links (jede bekommt nur ihren eigenen):
