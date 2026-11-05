@@ -254,7 +254,9 @@ const PH = ['#8a2b34','#2f5d50','#3b4a6b','#a0662a','#5b4a6e','#6b5a3a'];
 const AVC = ['#8a2b34','#2f5d50','#a0662a','#3b4a6b','#5b4a6e'];
 const hash = s => [...String(s)].reduce((a,c) => (a*31 + c.charCodeAt(0)) >>> 0, 7);
 const initials = t => (String(t||'?').trim()[0] || '?').toUpperCase();
-const cover = (b, cls='') => `<div class="cv ${cls}" style="--ph:${PH[hash(norm(b.title)) % PH.length]}"><span>${esc(b.title)}</span>${b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>`;
+const cover = (b, cls='') => `<div class="cv ${cls}" style="--ph:${PH[hash(norm(b.title)) % PH.length]}"><span>${esc(b.title)}</span>${b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"${b.cover2 ? ` data-alt="${esc(b.cover2)}"` : ''} onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt=''}else{this.remove()}">` : ''}</div>`;
+const dnbCover = isbn => `https://portal.dnb.de/opac/mvb/cover?isbn=${isbn}`;
+const olCover = isbn => `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg?default=false`;
 const av = id => { const i = Math.max(0, members().findIndex(m => m.id === id)), n = nameOf(id); return `<span class="av" style="--c:${AVC[i % AVC.length]}" title="${esc(n)}">${esc(initials(n))}</span>`; };
 const ICON_MARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg>';
 const ICON_MARK_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg>';
@@ -385,17 +387,19 @@ function vAdd(){
     if(A.photo) h += `<div class="photo"><img src="${A.photo}" alt="Dein Foto"><label class="btn">Anderes Foto<input type="file" accept="image/*" id="aFile" hidden></label></div>`;
     else h += `<label class="drop">${ICON_CAM}Foto machen oder auswählen<small>Ein Cover, ein Schaufenster, ein Regal: Ich erkenne die Bücher darauf.</small><input type="file" accept="image/*" id="aFile"></label>`;
     if(A.busy) h += `<div class="busy"><div class="spin"></div><span>${esc(A.busy)}</span></div>`;
+    if(A.note) h += `<div class="meta" style="margin:10px 0 0">${esc(A.note)}</div>`;
     if(A.msg) h += `<div class="note" style="margin:12px 0 0">${esc(A.msg)}</div>`;
     if(A.results && A.results.length){
       h += `<div class="sec" style="margin-top:18px">${A.results[0].ai ? 'Auf dem Foto erkannt' : 'Treffer'}</div><div class="hits">${A.results.map((r,i) => `<button class="hit" data-pick="${i}">${cover(r,'sm')}<span><span class="t-title">${esc(r.title)}</span><span class="t-auth" style="font-size:13px">${esc([r.authors, r.year].filter(Boolean).join(' · '))}</span></span></button>`).join('')}</div>`;
-    } else if(A.results) h += `<div class="meta" style="margin-top:12px">Nichts gefunden. Versuch es mit weniger Wörtern oder nur dem Namen der Autorin.</div>`;
+      if(!A.results[0].ai && A.query && aiAvailable() && !A.busy) h += `<div style="margin-top:10px"><button class="link" id="aAi">Nicht dabei? Mit KI im Web suchen</button></div>`;
+    }
     h += `<form id="aSearch"><label class="f" style="margin-top:20px">Oder suchen</label>
       <div class="row" style="flex-wrap:nowrap"><input type="search" id="aQ" value="${esc(A.query)}" placeholder="Titel, Autor*in oder ISBN" autocomplete="off" enterkeyhint="search"><button class="btn pri" type="submit">Suchen</button></div></form>`;
     h += `<div style="margin-top:14px"><button class="link" id="aManual">Ohne Suche selbst eintragen</button></div>`;
   } else {
     const D = A.draft, opts = [D.gCover && 'g', A.photo && 'p'].filter(Boolean);
-    if(opts.length > 1) h += `<label class="f">Cover</label><div class="covers"><button class="${D.useCover==='g'?'on':''}" data-cv="g">${cover({title:D.title, cover:D.gCover})}</button><button class="${D.useCover==='p'?'on':''}" data-cv="p">${cover({title:D.title, cover:A.photo})}</button></div>`;
-    else h += `<div class="photo">${cover({title:D.title || 'Neues Buch', cover: opts[0]==='g' ? D.gCover : opts[0]==='p' ? A.photo : ''})}</div>`;
+    if(opts.length > 1) h += `<label class="f">Cover</label><div class="covers"><button class="${D.useCover==='g'?'on':''}" data-cv="g">${cover({title:D.title, cover:D.gCover, cover2:D.gCover2})}</button><button class="${D.useCover==='p'?'on':''}" data-cv="p">${cover({title:D.title, cover:A.photo})}</button></div>`;
+    else h += `<div class="photo">${cover({title:D.title || 'Neues Buch', cover: opts[0]==='g' ? D.gCover : opts[0]==='p' ? A.photo : '', cover2: opts[0]==='g' ? D.gCover2 : ''})}</div>`;
     h += `<label class="f">Titel</label><input type="text" id="dT" value="${esc(D.title)}" autocomplete="off">
       <label class="f">Autor*in</label><input type="text" id="dA" value="${esc(D.authors)}" autocomplete="off">
       <label class="f">Klappentext</label><textarea id="dB" placeholder="${A.busy ? 'Lade Klappentext …' : 'Worum geht es, in zwei, drei Sätzen'}">${esc(D.blurb)}</textarea>
@@ -414,10 +418,12 @@ function toCanvas(img, max, gray){
   const g = c.getContext('2d'); if(gray) g.filter = 'grayscale(1) contrast(1.3)'; g.drawImage(img, 0, 0, c.width, c.height); return c;
 }
 const noAiError = () => Object.assign(new Error('noai'), { noai:true });
-async function aiScan(img){
-  const data = toCanvas(img, 1400).toDataURL('image/jpeg', 0.85).split(',')[1];
+const aiAvailable = () => !S.demo && !S.noAI;
+const aiScan = img => aiCall({ image: toCanvas(img, 1568).toDataURL('image/jpeg', 0.88).split(',')[1], mediaType:'image/jpeg' });
+const fromAi = b => { const isbn = String(b.isbn||'').replace(/[^0-9X]/gi,''); return { title:b.title, authors:b.authors||'', isbn, year:b.year||'', blurb:b.blurb||'', cover: isbn ? dnbCover(isbn) : '', cover2: isbn ? olCover(isbn) : '', ai:true }; };
+async function aiCall(payload){
   let r;
-  try { r = await fetch(SB_URL + '/functions/v1/bib-scan', { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ token:S.token, image:data, mediaType:'image/jpeg' }) }); }
+  try { r = await fetch(SB_URL + '/functions/v1/bib-scan', { method:'POST', headers:{ apikey:SB_KEY, 'Content-Type':'application/json' }, body: JSON.stringify(Object.assign({ token:S.token }, payload)) }); }
   catch(_){ throw noAiError(); } // Funktion nicht erreichbar (z. B. noch nicht eingerichtet)
   if(r.status === 404){ S.noAI = true; throw noAiError(); }
   let j = {}; try { j = await r.json(); } catch(_){}
@@ -426,22 +432,23 @@ async function aiScan(img){
   return Array.isArray(j.books) ? j.books : [];
 }
 async function onPhoto(file){
-  const A = S.add; A.results = null; A.msg = ''; A.busy = 'Foto wird vorbereitet …'; render();
+  const A = S.add; A.results = null; A.msg = ''; A.note = ''; A.busy = 'Foto wird vorbereitet …'; render();
   let img;
   try { img = await loadImage(file); A.photo = toCanvas(img, 360).toDataURL('image/jpeg', 0.72); }
   catch(e){ A.busy = ''; A.msg = e.message + '. Tipp den Titel einfach unten ein.'; render(); return; }
-  if(!S.demo && !S.noAI){
-    A.busy = 'Ich schaue mir das Foto an …'; render();
+  if(aiAvailable()){
+    A.busy = 'Ich schaue mir das Foto an und prüfe die Bücher …'; render();
     try {
       const found = await aiScan(img);
       A.busy = '';
       if(!found.length){ A.msg = 'Auf dem Foto habe ich kein Buch erkannt. Tipp den Titel unten ein.'; render(); return; }
-      A.results = found.filter(b => b.title).map(b => ({ title:b.title, authors:b.authors||'', isbn:String(b.isbn||'').replace(/[^0-9X]/gi,''), blurb:b.blurb||'', cover:'', year:'', ai:true }));
+      A.results = found.filter(b => b.title).map(fromAi);
       A.query = '';
       render(); enrichCovers(A); return;
     } catch(e){
       if(!e.noai){ A.busy = ''; A.msg = e.message + '. Du kannst den Titel unten eintippen.'; render(); return; }
     }
+    if(!S.demo) A.note = 'Die KI-Erkennung ist nicht erreichbar, ich nutze die einfache Texterkennung.';
   }
   await ocrPhoto(img);
 }
@@ -491,7 +498,7 @@ async function googleBooks(q){
     const isbn = ((ids.find(x => x.type==='ISBN_13') || ids.find(x => x.type==='ISBN_10') || {}).identifier) || '';
     const img = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
     return { gid:it.id, title:v.title || '', authors:(v.authors||[]).join(', '), year:String(v.publishedDate||'').slice(0,4), blurb:v.description || '', lang:v.language || '',
-      cover: img ? img.replace(/^http:/,'https:').replace('&edge=curl','') : '', isbn };
+      cover: img ? img.replace(/^http:/,'https:').replace('&edge=curl','') : (isbn ? dnbCover(isbn) : ''), isbn };
   }).filter(x => x.title);
   return out.map((x,i) => [x,i]).sort((a,b) => ((b[0].lang==='de')-(a[0].lang==='de')) || ((!!b[0].cover)-(!!a[0].cover)) || (a[1]-b[1])).map(p => p[0]);
 }
@@ -517,14 +524,15 @@ async function searchBooks(q){
 }
 async function enrichOne(r){
   if(r.cover) return;
+  if(r.isbn){ r.cover = dnbCover(r.isbn); r.cover2 = olCover(r.isbn); return; }
   const first = r.authors.split(',')[0].trim();
   try {
     const hits = await searchBooks(r.isbn ? 'isbn:' + r.isbn : r.title + (first ? ' ' + first : ''));
     const same = hits.filter(x => norm(x.title).includes(norm(r.title)) || norm(r.title).includes(norm(x.title)));
     const h = same.find(x => x.cover) || (r.isbn ? hits.find(x => x.cover) : null);
-    if(h){ r.cover = h.cover; if(!r.isbn) r.isbn = h.isbn; if(!r.blurb && h.blurb) r.blurb = h.blurb; if(!r.gid) r.gid = h.gid; if(!r.olKey) r.olKey = h.olKey; }
+    if(h){ r.cover = h.cover; if(!r.isbn && h.isbn){ r.isbn = h.isbn; r.cover2 = dnbCover(h.isbn); } if(!r.blurb && h.blurb) r.blurb = h.blurb; if(!r.gid) r.gid = h.gid; if(!r.olKey) r.olKey = h.olKey; }
   } catch(_){}
-  if(!r.cover && r.isbn) r.cover = `https://covers.openlibrary.org/b/isbn/${r.isbn}-M.jpg?default=false`;
+  if(!r.cover && r.isbn){ r.cover = dnbCover(r.isbn); r.cover2 = olCover(r.isbn); }
 }
 async function enrichCovers(A){
   await Promise.all((A.results||[]).map(enrichOne));
@@ -534,18 +542,32 @@ async function doSearch(){
   const A = S.add; if(!A.query.trim()){ A.busy=''; render(); return; }
   A.busy = 'Suche „' + A.query.replace(/^isbn:/,'ISBN ') + '“ …'; A.msg = ''; render();
   try { A.results = await searchBooks(A.query); }
-  catch(e){ A.results = null; A.msg = e.message + '. Trag das Buch selbst ein.'; }
+  catch(e){ A.results = []; }
+  A.busy = '';
+  if(!A.results.length && aiAvailable()) return aiSearch();
+  if(!A.results.length) A.msg = 'Nichts gefunden. Versuch es mit weniger Wörtern oder trag das Buch selbst ein.';
+  render();
+}
+async function aiSearch(){
+  const A = S.add; if(!A.query.trim()) return;
+  A.busy = 'Ich suche im Web nach „' + A.query.replace(/^isbn:/,'ISBN ') + '“ …'; A.msg = ''; render();
+  try {
+    const found = await aiCall({ query: A.query.replace(/^isbn:/,'ISBN ') });
+    if(S.add !== A) return;
+    A.results = found.filter(b => b.title).map(fromAi);
+    if(!A.results.length) A.msg = 'Auch im Web habe ich nichts gefunden. Trag das Buch selbst ein.';
+  } catch(e){ if(S.add !== A) return; A.msg = (e.noai ? 'Die KI-Suche ist nicht erreichbar' : e.message) + '. Trag das Buch selbst ein.'; }
   A.busy = ''; render();
 }
 async function pick(r){
   const A = S.add;
-  A.draft = { title:r.title, authors:r.authors, blurb:shortBlurb(r.blurb), note:'', isbn:r.isbn||'', gCover:r.cover||'', useCover: r.cover ? 'g' : 'p' };
+  A.draft = { title:r.title, authors:r.authors, blurb:shortBlurb(r.blurb), note:'', isbn:r.isbn||'', gCover:r.cover||'', gCover2:r.cover2||'', useCover: r.cover ? 'g' : 'p' };
   if(A.draft.blurb && A.draft.gCover){ render(); return; }
   A.busy = 'Suche Cover und Klappentext …'; render();
   if(!r.cover || (!r.gid && !r.olKey)) { await enrichOne(r); }
   if(S.add !== A || !A.draft) return;
   readDraft();
-  if(!A.draft.gCover && r.cover){ A.draft.gCover = r.cover; A.draft.useCover = 'g'; }
+  if(!A.draft.gCover && r.cover){ A.draft.gCover = r.cover; A.draft.gCover2 = r.cover2 || ''; A.draft.useCover = 'g'; }
   if(!A.draft.isbn && r.isbn) A.draft.isbn = r.isbn;
   if(!A.draft.blurb.trim()){
     let t = shortBlurb(r.blurb);
@@ -583,9 +605,10 @@ function bind(){
   const es = $('#eSave'); if(es) es.onclick = () => { es.disabled = true; S.edit = false; act('bib_update_book', {p_book:S.sheet, p_blurb:$('#eBlurb').value.trim(), p_note:$('#eNote').value.trim()}, true); };
   // Erfassen
   const af = $('#aFile'); if(af) af.onchange = () => { const f = af.files && af.files[0]; if(f) onPhoto(f); };
-  const as = $('#aSearch'); if(as) as.onsubmit = e => { e.preventDefault(); S.add.query = $('#aQ').value.trim(); doSearch(); };
+  const as = $('#aSearch'); if(as) as.onsubmit = e => { e.preventDefault(); S.add.query = $('#aQ').value.trim(); S.add.note = ''; doSearch(); };
   const aq = $('#aQ'); if(aq) aq.oninput = () => { S.add.query = aq.value; };
   $$('[data-pick]').forEach(b => b.onclick = () => pick(S.add.results[+b.dataset.pick]));
+  const ai = $('#aAi'); if(ai) ai.onclick = () => aiSearch();
   const am = $('#aManual'); if(am) am.onclick = () => { const q = S.add.query && !/^isbn:/.test(S.add.query) ? S.add.query : ''; S.add.draft = { title:q, authors:'', blurb:'', note:'', isbn:'', gCover:'', useCover:'p' }; render(); };
   $$('[data-cv]').forEach(b => b.onclick = () => { readDraft(); S.add.draft.useCover = b.dataset.cv; render(); });
   const db = $('#dBack'); if(db) db.onclick = () => { readDraft(); S.add.draft = null; S.add.busy = ''; render(); };
@@ -596,7 +619,7 @@ function bind(){
     act('bib_add_book', {p_title:D.title.trim(), p_authors:D.authors.trim(), p_blurb:D.blurb.trim(), p_cover:cv, p_isbn:D.isbn||'', p_note:D.note.trim()});
   };
 }
-$('#addBtn').onclick = () => { S.sheet = 'add'; S.add = { photo:null, query:'', results:null, busy:'', msg:'', draft:null }; render(); };
+$('#addBtn').onclick = () => { S.sheet = 'add'; S.add = { photo:null, query:'', results:null, busy:'', msg:'', note:'', draft:null }; render(); };
 $('#nav').onclick = e => { const b = e.target.closest('button'); if(!b) return; S.view = b.dataset.v; try{ localStorage.setItem('bib_view', S.view); }catch(_){} window.scrollTo(0,0); render(); };
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && S.sheet && !(S.add && S.add.draft)) closeSheet(); });
 // Beim Zurückkehren in die App frische Daten holen (außer während ein Fenster offen ist).
